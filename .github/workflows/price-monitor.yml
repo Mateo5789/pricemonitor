@@ -1,0 +1,36 @@
+name: Price Monitor
+
+on:
+  schedule:
+    - cron: "0 7 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  run-scraper:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Pobierz repo
+        uses: actions/checkout@v4
+
+      - name: Ustaw Pythona
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Zainstaluj biblioteki
+        run: pip install -r requirements.txt
+
+      - name: Uruchom scraper
+        run: python refurbed_scraper.py
+
+      - name: Zapisz zmiany w CSV
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add refurbed_prices.csv
+          git commit -m "Aktualizacja cen" || echo "Brak zmian do zapisania"
+          git push
