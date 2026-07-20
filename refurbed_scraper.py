@@ -8,9 +8,6 @@ from datetime import datetime
 
 URL = "https://www.refurbed.pl/p/iphone-13/14165b/?offer=17263393"
 PLIK_CSV = "refurbed_prices.csv"
-
-# Próg testowy. Jeśli cena jest poniżej 1300 zł, alert powinien się odpalić.
-# Po teście zmienimy na 1100.
 PROG_ALERTU = 1100
 
 
@@ -40,6 +37,21 @@ def pobierz_strone(url):
     return response.text
 
 
+def dodaj_info_o_alercie(wiersz):
+    cena = wiersz.get("cena_liczbowo")
+
+    wiersz["prog_alertu"] = PROG_ALERTU
+
+    if cena == "":
+        wiersz["alert"] = "BRAK_CENY"
+    elif cena < PROG_ALERTU:
+        wiersz["alert"] = "TAK"
+    else:
+        wiersz["alert"] = "NIE"
+
+    return wiersz
+
+
 def pobierz_glowny_produkt(soup, tekst):
     naglowek = soup.find("h1")
     model = naglowek.get_text(" ", strip=True) if naglowek else "iPhone 13"
@@ -59,7 +71,7 @@ def pobierz_glowny_produkt(soup, tekst):
 
     dostepnosc = "W magazynie" if "W magazynie" in tekst else "Brak danych"
 
-    return {
+    wiersz = {
         "data": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "typ": "glowny_produkt",
         "model": model,
@@ -71,6 +83,8 @@ def pobierz_glowny_produkt(soup, tekst):
         "dostepnosc": dostepnosc,
         "url": URL
     }
+
+    return dodaj_info_o_alercie(wiersz)
 
 
 def pobierz_sugerowane_konfiguracje(tekst):
@@ -86,7 +100,7 @@ def pobierz_sugerowane_konfiguracje(tekst):
     dopasowania = wzor.findall(tekst)
 
     for kolor, pamiec, stan, cena in dopasowania:
-        wyniki.append({
+        wiersz = {
             "data": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "typ": "sugerowana_konfiguracja",
             "model": "iPhone 13",
@@ -97,7 +111,9 @@ def pobierz_sugerowane_konfiguracje(tekst):
             "cena_liczbowo": wyczysc_cene(cena),
             "dostepnosc": "sugerowana konfiguracja",
             "url": URL
-        })
+        }
+
+        wyniki.append(dodaj_info_o_alercie(wiersz))
 
     return wyniki
 
@@ -167,6 +183,7 @@ def pokaz_porownanie(aktualny_pomiar, poprzedni_pomiar):
 
 def sprawdz_alert_cenowy(aktualny_pomiar):
     cena = aktualny_pomiar.get("cena_liczbowo")
+    alert = aktualny_pomiar.get("alert")
 
     print("\n--- ALERT CENOWY ---")
     print(f"Próg alertu: {PROG_ALERTU} zł")
@@ -176,8 +193,9 @@ def sprawdz_alert_cenowy(aktualny_pomiar):
         return
 
     print(f"Aktualna cena: {cena} zł")
+    print(f"Alert w CSV: {alert}")
 
-    if cena < PROG_ALERTU:
+    if alert == "TAK":
         print(f"🚨 ALERT: cena spadła poniżej {PROG_ALERTU} zł!")
         print(f"Produkt: {aktualny_pomiar.get('model')}")
         print(f"Cena: {aktualny_pomiar.get('cena')}")
@@ -196,6 +214,8 @@ def zapisz_do_csv_najnowsze_na_gorze(nowe_wiersze, nazwa_pliku=PLIK_CSV):
         "stan",
         "cena",
         "cena_liczbowo",
+        "alert",
+        "prog_alertu",
         "dostepnosc",
         "url"
     ]
@@ -244,3 +264,4 @@ zapisz_do_csv_najnowsze_na_gorze(wszystkie_nowe_wiersze)
 
 print("\nZapisano dane do refurbed_prices.csv")
 print("Najnowsze wyniki są teraz na górze pliku.")
+print("Kolumny alert i prog_alertu zostały dodane do CSV.")
