@@ -9,6 +9,10 @@ from datetime import datetime
 URL = "https://www.refurbed.pl/p/iphone-13/14165b/?offer=17263393"
 PLIK_CSV = "refurbed_prices.csv"
 
+# Próg testowy. Jeśli cena jest poniżej 1300 zł, alert powinien się odpalić.
+# Po teście zmienimy na 1100.
+PROG_ALERTU = 1100
+
 
 def wyczysc_cene(cena_tekst):
     if not cena_tekst:
@@ -161,6 +165,27 @@ def pokaz_porownanie(aktualny_pomiar, poprzedni_pomiar):
         print("Cena bez zmian ➖")
 
 
+def sprawdz_alert_cenowy(aktualny_pomiar):
+    cena = aktualny_pomiar.get("cena_liczbowo")
+
+    print("\n--- ALERT CENOWY ---")
+    print(f"Próg alertu: {PROG_ALERTU} zł")
+
+    if cena == "":
+        print("Brak ceny, nie można sprawdzić alertu.")
+        return
+
+    print(f"Aktualna cena: {cena} zł")
+
+    if cena < PROG_ALERTU:
+        print(f"🚨 ALERT: cena spadła poniżej {PROG_ALERTU} zł!")
+        print(f"Produkt: {aktualny_pomiar.get('model')}")
+        print(f"Cena: {aktualny_pomiar.get('cena')}")
+        print(f"Link: {aktualny_pomiar.get('url')}")
+    else:
+        print("Cena nadal powyżej progu alertu.")
+
+
 def zapisz_do_csv_najnowsze_na_gorze(nowe_wiersze, nazwa_pliku=PLIK_CSV):
     pola = [
         "data",
@@ -207,6 +232,7 @@ sugerowane = pobierz_sugerowane_konfiguracje(tekst)
 
 poprzedni_pomiar = pobierz_poprzedni_pomiar()
 pokaz_porownanie(glowny, poprzedni_pomiar)
+sprawdz_alert_cenowy(glowny)
 
 wszystkie_nowe_wiersze = [glowny] + sugerowane
 
