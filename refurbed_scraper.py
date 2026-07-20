@@ -98,24 +98,39 @@ def pobierz_sugerowane_konfiguracje(tekst):
     return wyniki
 
 
-def pobierz_poprzedni_pomiar(nazwa_pliku=PLIK_CSV):
+def zamien_date_na_obiekt(data_tekst):
+    try:
+        return datetime.strptime(data_tekst, "%Y-%m-%d %H:%M:%S")
+    except Exception:
+        return datetime.min
+
+
+def wczytaj_stare_wiersze(nazwa_pliku=PLIK_CSV):
     if not os.path.exists(nazwa_pliku):
-        return None
+        return []
 
     with open(nazwa_pliku, "r", encoding="utf-8-sig", newline="") as plik:
         reader = csv.DictReader(plik)
-        wiersze = list(reader)
+        return list(reader)
 
-    # Bierzemy tylko główny produkt, nie sugerowane konfiguracje
+
+def pobierz_poprzedni_pomiar(nazwa_pliku=PLIK_CSV):
+    stare_wiersze = wczytaj_stare_wiersze(nazwa_pliku)
+
     glowne_pomiary = [
-        wiersz for wiersz in wiersze
+        wiersz for wiersz in stare_wiersze
         if wiersz.get("typ") == "glowny_produkt" and wiersz.get("cena_liczbowo")
     ]
 
     if not glowne_pomiary:
         return None
 
-    return glowne_pomiary[-1]
+    glowne_pomiary.sort(
+        key=lambda wiersz: zamien_date_na_obiekt(wiersz.get("data", "")),
+        reverse=True
+    )
+
+    return glowne_pomiary[0]
 
 
 def pokaz_porownanie(aktualny_pomiar, poprzedni_pomiar):
@@ -146,7 +161,7 @@ def pokaz_porownanie(aktualny_pomiar, poprzedni_pomiar):
         print("Cena bez zmian ➖")
 
 
-def zapisz_do_csv(wiersze, nazwa_pliku=PLIK_CSV):
+def zapisz_do_csv_najnowsze_na_gorze(nowe_wiersze, nazwa_pliku=PLIK_CSV):
     pola = [
         "data",
         "typ",
@@ -160,13 +175,26 @@ def zapisz_do_csv(wiersze, nazwa_pliku=PLIK_CSV):
         "url"
     ]
 
-    with open(nazwa_pliku, "a", newline="", encoding="utf-8-sig") as plik:
+    stare_wiersze = wczytaj_stare_wiersze(nazwa_pliku)
+
+    wszystkie_wiersze = nowe_wiersze + stare_wiersze
+
+    wszystkie_wiersze.sort(
+        key=lambda wiersz: zamien_date_na_obiekt(wiersz.get("data", "")),
+        reverse=True
+    )
+
+    with open(nazwa_pliku, "w", newline="", encoding="utf-8-sig") as plik:
         writer = csv.DictWriter(plik, fieldnames=pola)
+        writer.writeheader()
 
-        if plik.tell() == 0:
-            writer.writeheader()
+        for wiersz in wszystkie_wiersze:
+            poprawiony_wiersz = {}
 
-        writer.writerows(wiersze)
+            for pole in pola:
+                poprawiony_wiersz[pole] = wiersz.get(pole, "")
+
+            writer.writerow(poprawiony_wiersz)
 
 
 html = pobierz_strone(URL)
@@ -180,12 +208,13 @@ sugerowane = pobierz_sugerowane_konfiguracje(tekst)
 poprzedni_pomiar = pobierz_poprzedni_pomiar()
 pokaz_porownanie(glowny, poprzedni_pomiar)
 
-wszystkie_wiersze = [glowny] + sugerowane
+wszystkie_nowe_wiersze = [glowny] + sugerowane
 
-print("\n--- ZAPISYWANE WIERSZE ---")
-for wiersz in wszystkie_wiersze:
+print("\n--- NOWE WIERSZE ---")
+for wiersz in wszystkie_nowe_wiersze:
     print(wiersz)
 
-zapisz_do_csv(wszystkie_wiersze)
+zapisz_do_csv_najnowsze_na_gorze(wszystkie_nowe_wiersze)
 
 print("\nZapisano dane do refurbed_prices.csv")
+print("Najnowsze wyniki są teraz na górze pliku.")
