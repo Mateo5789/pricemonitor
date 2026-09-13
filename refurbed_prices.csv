@@ -1,4 +1,10 @@
 ﻿data,typ,model,kolor,pamiec,stan,cena,cena_liczbowo,alert,prog_alertu,dostepnosc,url
+2026-09-13 12:38:58,glowny_produkt,"iPhone 13 128 GB | Dual-SIM (eSIM, Nano-SIM) | Gwiezdna Biel",do_odczytania,do_odczytania,do_odczytania,"1 123,22 zł",1123.22,NIE,1100,W magazynie,https://www.refurbed.pl/p/iphone-13/14165b/?offer=17263393
+2026-09-13 12:38:58,sugerowana_konfiguracja,iPhone 13,Gwiazda Polarna,128 GB,Bardzo dobry,"1 298,83 zł",1298.83,NIE,1100,sugerowana konfiguracja,https://www.refurbed.pl/p/iphone-13/14165b/?offer=17263393
+2026-09-13 12:38:58,sugerowana_konfiguracja,iPhone 13,Gwiazda Polarna,128 GB,Bardzo dobry,"1 298,83 zł",1298.83,NIE,1100,sugerowana konfiguracja,https://www.refurbed.pl/p/iphone-13/14165b/?offer=17263393
+2026-09-13 12:38:58,sugerowana_konfiguracja,iPhone 13,Północ,128 GB,Dobry,"1 123,22 zł",1123.22,NIE,1100,sugerowana konfiguracja,https://www.refurbed.pl/p/iphone-13/14165b/?offer=17263393
+2026-09-13 12:38:58,sugerowana_konfiguracja,iPhone 13,Północ,256 GB,Bardzo dobry,"1 425,58 zł",1425.58,NIE,1100,sugerowana konfiguracja,https://www.refurbed.pl/p/iphone-13/14165b/?offer=17263393
+2026-09-13 12:38:58,sugerowana_konfiguracja,iPhone 13,niebieski,512 GB,Premium,"1 792,83 zł",1792.83,NIE,1100,sugerowana konfiguracja,https://www.refurbed.pl/p/iphone-13/14165b/?offer=17263393
 2026-09-12 11:33:24,glowny_produkt,"iPhone 13 128 GB | Dual-SIM (eSIM, Nano-SIM) | Gwiezdna Biel",do_odczytania,do_odczytania,do_odczytania,"1 064,54 zł",1064.54,TAK,1100,W magazynie,https://www.refurbed.pl/p/iphone-13/14165b/?offer=17263393
 2026-09-12 11:33:24,sugerowana_konfiguracja,iPhone 13,Gwiazda Polarna,128 GB,Bardzo dobry,"1 300,19 zł",1300.19,NIE,1100,sugerowana konfiguracja,https://www.refurbed.pl/p/iphone-13/14165b/?offer=17263393
 2026-09-12 11:33:24,sugerowana_konfiguracja,iPhone 13,Gwiazda Polarna,128 GB,Bardzo dobry,"1 300,19 zł",1300.19,NIE,1100,sugerowana konfiguracja,https://www.refurbed.pl/p/iphone-13/14165b/?offer=17263393
