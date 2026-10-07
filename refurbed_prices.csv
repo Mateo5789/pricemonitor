@@ -1,4 +1,11 @@
 ﻿data,typ,model,kolor,pamiec,stan,cena,cena_liczbowo,alert,prog_alertu,dostepnosc,url
+2026-10-07 14:21:45,glowny_produkt,iPhone 13,do_odczytania,do_odczytania,do_odczytania,"1 039,99 zł",1039.99,TAK,1100,W magazynie,https://www.refurbed.pl/p/iphone-13/14165b/?offer=17263393
+2026-10-07 14:21:45,sugerowana_konfiguracja,iPhone 13,Gwiazda Polarna,128 GB,Bardzo dobry,"1 464,27 zł",1464.27,NIE,1100,sugerowana konfiguracja,https://www.refurbed.pl/p/iphone-13/14165b/?offer=17263393
+2026-10-07 14:21:45,sugerowana_konfiguracja,iPhone 13,Gwiazda Polarna,128 GB,Bardzo dobry,"1 464,27 zł",1464.27,NIE,1100,sugerowana konfiguracja,https://www.refurbed.pl/p/iphone-13/14165b/?offer=17263393
+2026-10-07 14:21:45,sugerowana_konfiguracja,iPhone 13,niebieski,128 GB,Dobry,"1 152,21 zł",1152.21,NIE,1100,sugerowana konfiguracja,https://www.refurbed.pl/p/iphone-13/14165b/?offer=17263393
+2026-10-07 14:21:45,sugerowana_konfiguracja,iPhone 13,różowy,256 GB,Bardzo dobry,"1 410,69 zł",1410.69,NIE,1100,sugerowana konfiguracja,https://www.refurbed.pl/p/iphone-13/14165b/?offer=17263393
+2026-10-07 14:21:45,sugerowana_konfiguracja,iPhone 13,niebieski,512 GB,Premium,"1 796,18 zł",1796.18,NIE,1100,sugerowana konfiguracja,https://www.refurbed.pl/p/iphone-13/14165b/?offer=17263393
+2026-10-07 14:21:45,sugerowana_konfiguracja,iPhone 13,różowy,512 GB,Bardzo dobry,"2 189,51 zł",2189.51,NIE,1100,sugerowana konfiguracja,https://www.refurbed.pl/p/iphone-13/14165b/?offer=17263393
 2026-10-06 14:04:32,glowny_produkt,iPhone 13,do_odczytania,do_odczytania,do_odczytania,"1 109,45 zł",1109.45,NIE,1100,W magazynie,https://www.refurbed.pl/p/iphone-13/14165b/?offer=17263393
 2026-10-06 14:04:32,sugerowana_konfiguracja,iPhone 13,Gwiazda Polarna,128 GB,Bardzo dobry,"1 459,37 zł",1459.37,NIE,1100,sugerowana konfiguracja,https://www.refurbed.pl/p/iphone-13/14165b/?offer=17263393
 2026-10-06 14:04:32,sugerowana_konfiguracja,iPhone 13,Gwiazda Polarna,128 GB,Bardzo dobry,"1 459,37 zł",1459.37,NIE,1100,sugerowana konfiguracja,https://www.refurbed.pl/p/iphone-13/14165b/?offer=17263393
