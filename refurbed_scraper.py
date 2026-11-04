@@ -202,7 +202,8 @@ def sprawdz_alert_cenowy(aktualny_pomiar):
         print(f"Link: {aktualny_pomiar.get('url')}")
     else:
         print("Cena nadal powyżej progu alertu.")
-
+roznica = cena - PROG_ALERTU
+print(f"Różnica względem progu: {roznica} zł")
 
 def zapisz_do_csv_najnowsze_na_gorze(nowe_wiersze, nazwa_pliku=PLIK_CSV):
     pola = [
