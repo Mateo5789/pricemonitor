@@ -1,5 +1,8 @@
 # Refurbed Price Tracker 2.0
 
+ **Live demo:** https://pricemonitor-ewhvyb28jj8tqwnwlfqjzz.streamlit.app/
+
+
 A Python project for automated price monitoring, data quality checks, data cleaning and interactive analytics.
 
 ## What the project does
@@ -203,8 +206,11 @@ The project also focuses on debugging real data problems and improving the syste
 
 ## Next steps
 
-- deploy the Streamlit application,
+
 - improve HTML targeting in the scraper,
 - add anomaly visibility to the dashboard,
 - add screenshots and a live demo link,
 - improve automated testing.
+
+
+ ## Live demo     https://pricemonitor-ewhvyb28jj8tqwnwlfqjzz.streamlit.app/
