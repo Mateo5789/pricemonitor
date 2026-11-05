@@ -21,6 +21,24 @@ The project includes:
 - analytics,
 - an interactive Streamlit dashboard.
 
+## Project structure
+
+```text
+price-monitor/
+├── app.py
+├── analytics.py
+├── data_quality.py
+├── data_cleaning.py
+├── refurbed_scraper.py
+├── refurbed_prices.csv
+├── refurbed_prices_clean.csv
+├── requirements.txt
+├── README.md
+└── screenshots/
+    ├── dashboard.png
+    ├── configurations.png
+    └── data_quality.png
+
 ## Project architecture
 
 ```text
@@ -211,6 +229,17 @@ The project also focuses on debugging real data problems and improving the syste
 - add anomaly visibility to the dashboard,
 - add screenshots and a live demo link,
 - improve automated testing.
+
+## Screenshots
+
+### Dashboard
+![Dashboard](screenshots/dashboard.png)
+
+### Configurations
+![Configurations](screenshots/configurations.png)
+
+### Data Quality
+![Data Quality](screenshots/data_quality.png)
 
 
  ## Live demo     https://pricemonitor-ewhvyb28jj8tqwnwlfqjzz.streamlit.app/
