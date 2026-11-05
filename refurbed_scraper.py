@@ -8,7 +8,11 @@ from datetime import datetime
 
 URL = "https://www.refurbed.pl/p/iphone-13/14165b/?offer=17263393"
 PLIK_CSV = "refurbed_prices.csv"
+PLIK_ANOMALII = "price_anomalies.csv"
 PROG_ALERTU = 1100
+
+MIN_CENA = 500
+MAX_CENA = 5000
 
 
 def wyczysc_cene(cena_tekst):
@@ -21,6 +25,13 @@ def wyczysc_cene(cena_tekst):
     cena_tekst = cena_tekst.replace(",", ".")
 
     return float(cena_tekst)
+
+
+def cena_w_poprawnym_zakresie(cena):
+    return (
+        isinstance(cena, (int, float))
+        and MIN_CENA <= cena <= MAX_CENA
+    )
 
 
 def pobierz_strone(url):
@@ -52,6 +63,38 @@ def dodaj_info_o_alercie(wiersz):
     return wiersz
 
 
+def zapisz_anomalie(anomalie, nazwa_pliku=PLIK_ANOMALII):
+    if not anomalie:
+        return
+
+    pola = [
+        "data",
+        "typ",
+        "model",
+        "kolor",
+        "pamiec",
+        "stan",
+        "cena_surowa",
+        "cena_liczbowo",
+        "powod",
+        "url",
+    ]
+
+    plik_istnieje = os.path.exists(nazwa_pliku)
+
+    with open(nazwa_pliku, "a", newline="", encoding="utf-8-sig") as plik:
+        writer = csv.DictWriter(plik, fieldnames=pola)
+
+        if not plik_istnieje:
+            writer.writeheader()
+
+        for anomalia in anomalie:
+            writer.writerow({
+                pole: anomalia.get(pole, "")
+                for pole in pola
+            })
+
+
 def pobierz_glowny_produkt(soup, tekst):
     naglowek = soup.find("h1")
     model = naglowek.get_text(" ", strip=True) if naglowek else "iPhone 13"
@@ -63,7 +106,7 @@ def pobierz_glowny_produkt(soup, tekst):
     for cena_tekst in ceny:
         cena_float = wyczysc_cene(cena_tekst)
 
-        if 500 <= cena_float <= 5000:
+        if cena_w_poprawnym_zakresie(cena_float):
             ceny_liczbowe.append((cena_float, cena_tekst))
 
     cena = min(ceny_liczbowe)[1] if ceny_liczbowe else None
@@ -89,6 +132,7 @@ def pobierz_glowny_produkt(soup, tekst):
 
 def pobierz_sugerowane_konfiguracje(tekst):
     wyniki = []
+    anomalie = []
 
     wzor = re.compile(
         r"([A-Za-zĄąĆćĘęŁłŃńÓóŚśŹźŻż ]+)\s+"
@@ -99,21 +143,90 @@ def pobierz_sugerowane_konfiguracje(tekst):
 
     dopasowania = wzor.findall(tekst)
 
+    widziane = set()
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
     for kolor, pamiec, stan, cena in dopasowania:
+        kolor = kolor.strip()
+        pamiec = pamiec.strip()
+        stan = stan.strip()
+        cena = cena.strip()
+
+        try:
+            cena_liczbowo = wyczysc_cene(cena)
+        except Exception:
+            anomalie.append({
+                "data": timestamp,
+                "typ": "invalid_price_candidate",
+                "model": "iPhone 13",
+                "kolor": kolor,
+                "pamiec": pamiec,
+                "stan": stan,
+                "cena_surowa": cena,
+                "cena_liczbowo": "",
+                "powod": "Nie udało się przeliczyć ceny na liczbę",
+                "url": URL,
+            })
+            continue
+
+        if not cena_w_poprawnym_zakresie(cena_liczbowo):
+            anomalie.append({
+                "data": timestamp,
+                "typ": "invalid_price_candidate",
+                "model": "iPhone 13",
+                "kolor": kolor,
+                "pamiec": pamiec,
+                "stan": stan,
+                "cena_surowa": cena,
+                "cena_liczbowo": cena_liczbowo,
+                "powod": (
+                    f"Cena poza zakresem "
+                    f"{MIN_CENA}-{MAX_CENA} zł"
+                ),
+                "url": URL,
+            })
+            continue
+
+        klucz = (
+            kolor.lower(),
+            pamiec.lower(),
+            stan.lower(),
+            cena_liczbowo,
+        )
+
+        if klucz in widziane:
+            continue
+
+        widziane.add(klucz)
+
         wiersz = {
-            "data": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "data": timestamp,
             "typ": "sugerowana_konfiguracja",
             "model": "iPhone 13",
-            "kolor": kolor.strip(),
-            "pamiec": pamiec.strip(),
-            "stan": stan.strip(),
-            "cena": cena.strip(),
-            "cena_liczbowo": wyczysc_cene(cena),
+            "kolor": kolor,
+            "pamiec": pamiec,
+            "stan": stan,
+            "cena": cena,
+            "cena_liczbowo": cena_liczbowo,
             "dostepnosc": "sugerowana konfiguracja",
             "url": URL
         }
 
         wyniki.append(dodaj_info_o_alercie(wiersz))
+
+    print(
+        f"Sugerowane konfiguracje: "
+        f"{len(dopasowania)} dopasowań regex -> "
+        f"{len(wyniki)} poprawnych unikalnych rekordów"
+    )
+
+    if anomalie:
+        print(
+            f"Wykryto anomalie cenowe: {len(anomalie)}. "
+            f"Zapisano do {PLIK_ANOMALII}"
+        )
+
+    zapisz_anomalie(anomalie)
 
     return wyniki
 
@@ -139,7 +252,8 @@ def pobierz_poprzedni_pomiar(nazwa_pliku=PLIK_CSV):
 
     glowne_pomiary = [
         wiersz for wiersz in stare_wiersze
-        if wiersz.get("typ") == "glowny_produkt" and wiersz.get("cena_liczbowo")
+        if wiersz.get("typ") == "glowny_produkt"
+        and wiersz.get("cena_liczbowo")
     ]
 
     if not glowne_pomiary:
@@ -202,8 +316,7 @@ def sprawdz_alert_cenowy(aktualny_pomiar):
         print(f"Link: {aktualny_pomiar.get('url')}")
     else:
         print("Cena nadal powyżej progu alertu.")
-roznica = cena - PROG_ALERTU
-print(f"Różnica względem progu: {roznica} zł")
+
 
 def zapisz_do_csv_najnowsze_na_gorze(nowe_wiersze, nazwa_pliku=PLIK_CSV):
     pola = [
@@ -243,26 +356,30 @@ def zapisz_do_csv_najnowsze_na_gorze(nowe_wiersze, nazwa_pliku=PLIK_CSV):
             writer.writerow(poprawiony_wiersz)
 
 
-html = pobierz_strone(URL)
+def main():
+    html = pobierz_strone(URL)
 
-soup = BeautifulSoup(html, "html.parser")
-tekst = soup.get_text("\n", strip=True)
+    soup = BeautifulSoup(html, "html.parser")
+    tekst = soup.get_text("\n", strip=True)
 
-glowny = pobierz_glowny_produkt(soup, tekst)
-sugerowane = pobierz_sugerowane_konfiguracje(tekst)
+    glowny = pobierz_glowny_produkt(soup, tekst)
+    sugerowane = pobierz_sugerowane_konfiguracje(tekst)
 
-poprzedni_pomiar = pobierz_poprzedni_pomiar()
-pokaz_porownanie(glowny, poprzedni_pomiar)
-sprawdz_alert_cenowy(glowny)
+    poprzedni_pomiar = pobierz_poprzedni_pomiar()
+    pokaz_porownanie(glowny, poprzedni_pomiar)
+    sprawdz_alert_cenowy(glowny)
 
-wszystkie_nowe_wiersze = [glowny] + sugerowane
+    wszystkie_nowe_wiersze = [glowny] + sugerowane
 
-print("\n--- NOWE WIERSZE ---")
-for wiersz in wszystkie_nowe_wiersze:
-    print(wiersz)
+    print("\n--- NOWE WIERSZE ---")
+    for wiersz in wszystkie_nowe_wiersze:
+        print(wiersz)
 
-zapisz_do_csv_najnowsze_na_gorze(wszystkie_nowe_wiersze)
+    zapisz_do_csv_najnowsze_na_gorze(wszystkie_nowe_wiersze)
 
-print("\nZapisano dane do refurbed_prices.csv")
-print("Najnowsze wyniki są teraz na górze pliku.")
-print("Kolumny alert i prog_alertu zostały dodane do CSV.")
+    print("\nZapisano dane do refurbed_prices.csv")
+    print("Najnowsze wyniki są teraz na górze pliku.")
+
+
+if __name__ == "__main__":
+    main()

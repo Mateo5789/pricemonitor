@@ -11,13 +11,16 @@ from analytics import (
 
 from data_quality import (
     raport_jakosci,
-    znajdz_duplikaty_biznesowe,
+    znajdz_duplikaty_w_tym_samym_pomiarze,
+    znajdz_duplikaty_glownego_produktu,
+    znajdz_duplikaty_sugerowanych_konfiguracji,
     znajdz_bledne_ceny,
     znajdz_bledne_alerty,
 )
 
 
-PLIK_CSV = "refurbed_prices.csv"
+PLIK_RAW = "refurbed_prices.csv"
+PLIK_CLEAN = "refurbed_prices_clean.csv"
 
 
 st.set_page_config(
@@ -33,31 +36,53 @@ st.caption(
 
 
 @st.cache_data
-def zaladuj_dane():
-    return wczytaj_dane(PLIK_CSV)
+def zaladuj_raw():
+    return wczytaj_dane(PLIK_RAW)
+
+
+@st.cache_data
+def zaladuj_clean():
+    return wczytaj_dane(PLIK_CLEAN)
 
 
 try:
-    df = zaladuj_dane()
+    df_raw = zaladuj_raw()
 except FileNotFoundError:
     st.error(
-        f"Nie znaleziono pliku {PLIK_CSV}. "
+        f"Nie znaleziono pliku {PLIK_RAW}. "
         "Umieść go w tym samym folderze co app.py."
     )
     st.stop()
 except Exception as e:
-    st.error(f"Błąd podczas wczytywania danych: {e}")
+    st.error(f"Błąd podczas wczytywania RAW: {e}")
+    st.stop()
+
+try:
+    df_clean = zaladuj_clean()
+except FileNotFoundError:
+    st.error(
+        f"Nie znaleziono pliku {PLIK_CLEAN}. "
+        "Najpierw uruchom: py data_cleaning.py"
+    )
+    st.stop()
+except Exception as e:
+    st.error(f"Błąd podczas wczytywania CLEAN: {e}")
     st.stop()
 
 
-if df.empty:
-    st.warning("Plik CSV nie zawiera danych.")
+if df_raw.empty:
+    st.warning("Plik RAW nie zawiera danych.")
+    st.stop()
+
+if df_clean.empty:
+    st.warning("Plik CLEAN nie zawiera danych.")
     st.stop()
 
 
-zakladka1, zakladka2, zakladka3 = st.tabs(
+zakladka1, zakladka2, zakladka3, zakladka4 = st.tabs(
     [
         "📊 Dashboard",
+        "📱 Konfiguracje",
         "🧹 Data Quality",
         "📋 Dane",
     ]
@@ -67,12 +92,8 @@ zakladka1, zakladka2, zakladka3 = st.tabs(
 with zakladka1:
     st.subheader("Podsumowanie cen")
 
-    try:
-        glowny = filtruj_glowny_produkt(df)
-        statystyki = policz_statystyki(glowny)
-    except Exception as e:
-        st.error(f"Błąd analizy głównego produktu: {e}")
-        st.stop()
+    glowny = filtruj_glowny_produkt(df_clean)
+    statystyki = policz_statystyki(glowny)
 
     if statystyki["liczba_pomiarow"] == 0:
         st.warning("Brak poprawnych pomiarów głównego produktu.")
@@ -105,7 +126,8 @@ with zakladka1:
         )
 
         st.write(
-            f"**Liczba pomiarów:** {statystyki['liczba_pomiarow']}"
+            f"**Liczba pomiarów głównego produktu:** "
+            f"{statystyki['liczba_pomiarow']}"
         )
 
         if statystyki["zmiana_procentowa"] is not None:
@@ -154,31 +176,150 @@ with zakladka1:
             limit=10
         )
 
-        if ostatnie.empty:
-            st.info("Brak pomiarów do wyświetlenia.")
-        else:
+        st.dataframe(
+            ostatnie,
+            use_container_width=True,
+            hide_index=True
+        )
+
+
+with zakladka2:
+    st.subheader("Analiza sugerowanych konfiguracji")
+
+    konfiguracje = df_clean[
+        df_clean["typ"] == "sugerowana_konfiguracja"
+    ].copy()
+
+    if konfiguracje.empty:
+        st.info("Brak danych o sugerowanych konfiguracjach.")
+    else:
+        kol1, kol2, kol3, kol4 = st.columns(4)
+
+        kol1.metric(
+            "Liczba rekordów CLEAN",
+            len(konfiguracje)
+        )
+
+        kol2.metric(
+            "Najniższa cena",
+            f"{konfiguracje['cena_liczbowo'].min():.2f} zł"
+        )
+
+        kol3.metric(
+            "Najwyższa cena",
+            f"{konfiguracje['cena_liczbowo'].max():.2f} zł"
+        )
+
+        kol4.metric(
+            "Średnia cena",
+            f"{konfiguracje['cena_liczbowo'].mean():.2f} zł"
+        )
+
+        pamieci = ["Wszystkie"] + sorted(
+            konfiguracje["pamiec"]
+            .dropna()
+            .astype(str)
+            .unique()
+            .tolist()
+        )
+
+        stany = ["Wszystkie"] + sorted(
+            konfiguracje["stan"]
+            .dropna()
+            .astype(str)
+            .unique()
+            .tolist()
+        )
+
+        kolory = ["Wszystkie"] + sorted(
+            konfiguracje["kolor"]
+            .dropna()
+            .astype(str)
+            .unique()
+            .tolist()
+        )
+
+        f1, f2, f3 = st.columns(3)
+
+        wybrana_pamiec = f1.selectbox("Pamięć", pamieci)
+        wybrany_stan = f2.selectbox("Stan", stany)
+        wybrany_kolor = f3.selectbox("Kolor", kolory)
+
+        widok = konfiguracje.copy()
+
+        if wybrana_pamiec != "Wszystkie":
+            widok = widok[
+                widok["pamiec"].astype(str) == wybrana_pamiec
+            ]
+
+        if wybrany_stan != "Wszystkie":
+            widok = widok[
+                widok["stan"].astype(str) == wybrany_stan
+            ]
+
+        if wybrany_kolor != "Wszystkie":
+            widok = widok[
+                widok["kolor"].astype(str) == wybrany_kolor
+            ]
+
+        st.write(
+            f"**Liczba rekordów po filtrach:** {len(widok)}"
+        )
+
+        if not widok.empty:
+            historia_konf = (
+                widok[
+                    ["data", "cena_liczbowo"]
+                ]
+                .dropna()
+                .sort_values("data")
+            )
+
+            if not historia_konf.empty:
+                st.line_chart(
+                    historia_konf.set_index("data")[
+                        "cena_liczbowo"
+                    ]
+                )
+
+            kolumny_tabeli = [
+                kolumna for kolumna in [
+                    "data",
+                    "model",
+                    "kolor",
+                    "pamiec",
+                    "stan",
+                    "cena_liczbowo",
+                    "alert",
+                ]
+                if kolumna in widok.columns
+            ]
+
             st.dataframe(
-                ostatnie,
+                widok.sort_values(
+                    "data",
+                    ascending=False
+                )[kolumny_tabeli],
                 use_container_width=True,
                 hide_index=True
             )
 
 
-with zakladka2:
-    st.subheader("Kontrola jakości danych")
+with zakladka3:
+    st.subheader("Kontrola jakości danych RAW")
 
-    raport = raport_jakosci(df)
+    raport = raport_jakosci(df_raw)
 
     q1, q2, q3, q4 = st.columns(4)
 
     q1.metric(
-        "Wynik jakości",
+        "Wynik jakości RAW",
         f"{raport['wynik_jakosci']}/100"
     )
 
     q2.metric(
-        "Pełne duplikaty",
-        raport["pelne_duplikaty"]
+        "Duplikaty w tym samym pomiarze",
+        raport["duplikaty_w_tym_samym_pomiarze"]
     )
 
     q3.metric(
@@ -191,63 +332,57 @@ with zakladka2:
         raport["bledne_alerty"]
     )
 
+    st.write(f"**Rekordy RAW:** {len(df_raw)}")
+    st.write(f"**Rekordy CLEAN:** {len(df_clean)}")
     st.write(
-        f"**Liczba rekordów:** {raport['liczba_rekordow']}"
+        f"**Usunięte / odfiltrowane rekordy:** "
+        f"{len(df_raw) - len(df_clean)}"
+    )
+
+    typy = raport.get("typy_rekordow", {})
+
+    if typy:
+        st.write("**Typy rekordów RAW:**")
+        for typ, liczba in typy.items():
+            st.write(f"- {typ}: {liczba}")
+
+    st.write(
+        f"**Duplikaty głównego produktu:** "
+        f"{raport['duplikaty_glownego_produktu']}"
     )
     st.write(
-        f"**Liczba kolumn:** {raport['liczba_kolumn']}"
-    )
-    st.write(
-        f"**Duplikaty biznesowe:** "
-        f"{raport['duplikaty_biznesowe']}"
+        f"**Duplikaty sugerowanych konfiguracji:** "
+        f"{raport['duplikaty_sugerowanych_konfiguracji']}"
     )
     st.write(
         f"**Błędne daty:** {raport['bledne_daty']}"
     )
 
-    st.subheader("Braki danych")
+    st.subheader("Duplikaty sugerowanych konfiguracji")
 
-    braki_df = pd.DataFrame(
-        [
-            {
-                "kolumna": kolumna,
-                "brakujace_wartosci": liczba
-            }
-            for kolumna, liczba in raport["braki"].items()
-            if liczba > 0
-        ]
+    duplikaty_sugerowane = (
+        znajdz_duplikaty_sugerowanych_konfiguracji(df_raw)
     )
 
-    if braki_df.empty:
-        st.success("Nie wykryto brakujących wartości.")
-    else:
-        st.dataframe(
-            braki_df,
-            use_container_width=True,
-            hide_index=True
+    if duplikaty_sugerowane.empty:
+        st.success(
+            "Brak duplikatów sugerowanych konfiguracji."
         )
-
-    st.subheader("Duplikaty biznesowe")
-
-    duplikaty = znajdz_duplikaty_biznesowe(df)
-
-    if duplikaty.empty:
-        st.success("Nie wykryto duplikatów biznesowych.")
     else:
         st.warning(
-            f"Wykryto {len(duplikaty)} rekordów "
-            "należących do grup duplikatów."
+            f"W RAW wykryto {len(duplikaty_sugerowane)} "
+            "rekordów należących do grup duplikatów."
         )
 
         st.dataframe(
-            duplikaty.head(50),
+            duplikaty_sugerowane.head(100),
             use_container_width=True,
             hide_index=True
         )
 
     st.subheader("Podejrzane ceny")
 
-    bledne_ceny = znajdz_bledne_ceny(df)
+    bledne_ceny = znajdz_bledne_ceny(df_raw)
 
     if bledne_ceny.empty:
         st.success("Nie wykryto podejrzanych cen.")
@@ -257,39 +392,22 @@ with zakladka2:
         )
 
         st.dataframe(
-            bledne_ceny.head(50),
-            use_container_width=True,
-            hide_index=True
-        )
-
-    st.subheader("Niespójne alerty")
-
-    bledne_alerty = znajdz_bledne_alerty(df)
-
-    if bledne_alerty.empty:
-        st.success("Alerty są spójne z progami cenowymi.")
-    else:
-        st.warning(
-            f"Wykryto {len(bledne_alerty)} niespójnych alertów."
-        )
-
-        st.dataframe(
-            bledne_alerty.head(50),
+            bledne_ceny.head(100),
             use_container_width=True,
             hide_index=True
         )
 
 
-with zakladka3:
-    st.subheader("Podgląd danych")
+with zakladka4:
+    st.subheader("Podgląd danych CLEAN")
 
     typy = ["Wszystkie"]
 
-    if "typ" in df.columns:
+    if "typ" in df_clean.columns:
         typy += sorted(
             [
                 str(x)
-                for x in df["typ"].dropna().unique()
+                for x in df_clean["typ"].dropna().unique()
             ]
         )
 
@@ -298,7 +416,7 @@ with zakladka3:
         typy
     )
 
-    widok = df.copy()
+    widok = df_clean.copy()
 
     if (
         wybrany_typ != "Wszystkie"
@@ -308,7 +426,9 @@ with zakladka3:
             widok["typ"].astype(str) == wybrany_typ
         ]
 
-    st.write(f"**Liczba widocznych rekordów:** {len(widok)}")
+    st.write(
+        f"**Liczba widocznych rekordów CLEAN:** {len(widok)}"
+    )
 
     st.dataframe(
         widok.sort_values(
