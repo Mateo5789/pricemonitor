@@ -239,7 +239,7 @@ The project also focuses on debugging real data problems and improving the syste
 ![Configurations](screenshots/Configurations.png)
 
 ### Data Quality
-![Data Quality](screenshots/Data_quality.png)
+![Data Quality](screenshots/Data_Quality.png)
 
 
  ## Live demo     https://pricemonitor-ewhvyb28jj8tqwnwlfqjzz.streamlit.app/
