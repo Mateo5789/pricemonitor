@@ -233,13 +233,13 @@ The project also focuses on debugging real data problems and improving the syste
 ## Screenshots
 
 ### Dashboard
-![Dashboard](screenshots/dashboard.png)
+![Dashboard](screenshots/Dashboard.png)
 
 ### Configurations
-![Configurations](screenshots/configurations.png)
+![Configurations](screenshots/Configurations.png)
 
 ### Data Quality
-![Data Quality](screenshots/data_quality.png)
+![Data Quality](screenshots/Data_quality.png)
 
 
  ## Live demo     https://pricemonitor-ewhvyb28jj8tqwnwlfqjzz.streamlit.app/
