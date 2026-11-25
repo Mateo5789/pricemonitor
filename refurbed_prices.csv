@@ -1,4 +1,8 @@
 ﻿data,typ,model,kolor,pamiec,stan,cena,cena_liczbowo,alert,prog_alertu,dostepnosc,url
+2026-11-25 17:53:56,glowny_produkt,iPhone 13,do_odczytania,do_odczytania,do_odczytania,"1 089,25 zł",1089.25,TAK,1100,Brak danych,https://www.refurbed.pl/p/iphone-13/14165b/?offer=17263393
+2026-11-25 17:53:56,sugerowana_konfiguracja,iPhone 13,Gwiazda Polarna,128 GB,Bardzo dobry,"1 451,48 zł",1451.48,NIE,1100,sugerowana konfiguracja,https://www.refurbed.pl/p/iphone-13/14165b/?offer=17263393
+2026-11-25 17:53:56,sugerowana_konfiguracja,iPhone 13,różowy,128 GB,Dobry,"1 160,97 zł",1160.97,NIE,1100,sugerowana konfiguracja,https://www.refurbed.pl/p/iphone-13/14165b/?offer=17263393
+2026-11-25 17:53:56,sugerowana_konfiguracja,iPhone 13,Północ,256 GB,Bardzo dobry,"1 702,35 zł",1702.35,NIE,1100,sugerowana konfiguracja,https://www.refurbed.pl/p/iphone-13/14165b/?offer=17263393
 2026-11-24 18:46:20,glowny_produkt,iPhone 13,do_odczytania,do_odczytania,do_odczytania,"1 044,99 zł",1044.99,TAK,1100,Brak danych,https://www.refurbed.pl/p/iphone-13/14165b/?offer=17263393
 2026-11-24 18:46:20,sugerowana_konfiguracja,iPhone 13,Gwiazda Polarna,128 GB,Bardzo dobry,"1 446,40 zł",1446.4,NIE,1100,sugerowana konfiguracja,https://www.refurbed.pl/p/iphone-13/14165b/?offer=17263393
 2026-11-24 18:46:20,sugerowana_konfiguracja,iPhone 13,Północ,128 GB,Dobry,"1 168,12 zł",1168.12,NIE,1100,sugerowana konfiguracja,https://www.refurbed.pl/p/iphone-13/14165b/?offer=17263393
